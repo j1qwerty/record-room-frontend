@@ -1,6 +1,7 @@
 import { Buildings, MapPin, Plus, ArrowRight } from '@phosphor-icons/react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { rooms } from '../data/mock';
+import { loadRooms } from '../data/roomStore';
 import { PageHeader } from '../components/ui/PageHeader';
 import { LinkButton } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -8,6 +9,8 @@ import { Badge } from '../components/ui/Badge';
 import { RoomMap } from '../components/RoomMap';
 
 export function RoomsPage() {
+  const [rooms] = useState(loadRooms);
+
   return (
     <div className="relative space-y-8">
       <div className="pointer-events-none absolute right-0 top-0 w-40 opacity-20">

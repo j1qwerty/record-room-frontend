@@ -10,15 +10,17 @@ import {
   UserCircle,
 } from '@phosphor-icons/react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useState } from 'react';
 import { files } from '../data/mock';
+import { loadRooms } from '../data/roomStore';
 import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import { LinkButton, Button } from '../components/ui/Button';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ShelfView } from '../components/ShelfView';
-import { rooms } from '../data/mock';
 
 export function FileDetailPage() {
+  const [rooms] = useState(loadRooms);
   const { fileId } = useParams();
   const navigate = useNavigate();
   const file = files.find((item) => item.id === fileId) ?? files[0];

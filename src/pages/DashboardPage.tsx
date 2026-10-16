@@ -1,163 +1,220 @@
 import {
-  ArrowRight,
   Archive,
+  ArrowRight,
+  Barcode,
   CheckCircle,
   Clock,
   Files,
   MagnifyingGlass,
   MapPin,
+  Plus,
+  UploadSimple,
 } from '@phosphor-icons/react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PretextMasonry } from '../components/PretextMasonry';
 import { Card } from '../components/ui/Card';
 import { LinkButton } from '../components/ui/Button';
 import { StatCard } from '../components/ui/StatCard';
-import { SectionHeader } from '../components/ui/SectionHeader';
-import { DecorativeField } from '../components/DecorativeField';
-import { RoomMap } from '../components/RoomMap';
-import { rooms, dashboardEvents, galleryItems } from '../data/mock';
+import { PageHeader } from '../components/ui/PageHeader';
+import { dashboardEvents } from '../data/mock';
+import { loadRooms } from '../data/roomStore';
 import { formatNumber } from '../lib/utils';
 
-export function DashboardPage() {
-  return (
-    <div className="space-y-10">
-      <section className="relative overflow-hidden rounded-3xl border border-base bg-[var(--rr-surface)] p-6 shadow-sm md:p-8 lg:p-10">
-        <DecorativeField variant={2} className="-right-8 -top-10 w-56" />
-        <DecorativeField variant={7} className="bottom-0 left-0 w-40 opacity-25" />
-        <div className="relative grid gap-8 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
-          <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-base bg-[var(--rr-bg)] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-accent">
-              <span className="size-2 rounded-full bg-emerald-500" /> Live operations view
-            </div>
-            <h1 className="max-w-4xl text-4xl font-semibold tracking-[-0.05em] md:text-6xl">
-              Know the record. Know the room. Know the history.
-            </h1>
-            <p className="muted mt-5 max-w-2xl text-base leading-7">
-              A unified operational view of physical files, digital copies, locations, issue/return
-              activity and digitization progress.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <LinkButton to="/search" icon={<MagnifyingGlass size={18} />}>
-                Search records
-              </LinkButton>
-              <LinkButton to="/rooms" variant="ghost" icon={<MapPin size={18} />}>
-                Explore rooms
-              </LinkButton>
-            </div>
-          </div>
-          <div className="surface-flat relative overflow-hidden rounded-2xl p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold">Current record-room footprint</p>
-                <p className="muted text-xs">SITE-001 · BLD-001 · Floor 02</p>
-              </div>
-              <span className="rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
-                76% mapped
-              </span>
-            </div>
-            <RoomMap room={rooms[0]} compact />
-          </div>
-        </div>
-      </section>
+const quickActions = [
+  { label: 'Create file', detail: 'Register a physical record', to: '/files/new', icon: Plus },
+  {
+    label: 'Find a record',
+    detail: 'Search by number or subject',
+    to: '/search',
+    icon: MagnifyingGlass,
+  },
+  { label: 'Issue or return', detail: 'Open the circulation desk', to: '/issue', icon: Barcode },
+  {
+    label: 'Manage locations',
+    detail: 'Add rooms and storage units',
+    to: '/admin/locations',
+    icon: MapPin,
+  },
+];
 
-      <section>
-        <SectionHeader
-          eyebrow="System pulse"
-          title="Today at a glance"
-          description="These values are illustrative frontend data and are ready to connect to API responses."
-        />
-      </section>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+export function DashboardPage() {
+  const [rooms] = useState(loadRooms);
+
+  return (
+    <div className="space-y-6 lg:space-y-7">
+      <PageHeader
+        kicker="Record room"
+        title="Dashboard"
+        description="Your daily view of registered files, physical locations and record-room activity."
+        actions={
+          <>
+            <LinkButton to="/search" variant="ghost" icon={<MagnifyingGlass size={17} />}>
+              Find a record
+            </LinkButton>
+            <LinkButton to="/files/new" icon={<Plus size={17} />}>
+              Create file
+            </LinkButton>
+          </>
+        }
+      />
+
+      <section
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+        aria-label="Registry summary"
+      >
         <StatCard
-          label="Physical records"
+          label="Registered files"
           value={formatNumber(2478450)}
-          note="+18,240 verified this month"
-          icon={<Files size={22} />}
+          note="Physical file registry"
+          icon={<Files size={21} />}
         />
         <StatCard
-          label="Mapped files"
+          label="Mapped records"
           value="96.8%"
-          note="+2.4% since last reconciliation"
-          icon={<MapPin size={22} />}
+          note="Files with a known shelf"
+          icon={<MapPin size={21} />}
+          tone="success"
         />
         <StatCard
-          label="Issued now"
+          label="Currently issued"
           value="148"
-          note="12 due for return today"
+          note="12 due back today"
+          icon={<Clock size={21} />}
           tone="warning"
-          icon={<Clock size={22} />}
         />
         <StatCard
           label="Digitization"
           value="64.2%"
-          note="Batch throughput above target"
-          icon={<Archive size={22} />}
+          note="Overall scan progress"
+          icon={<Archive size={21} />}
         />
-      </div>
+      </section>
 
-      <section className="grid gap-5 xl:grid-cols-[1.1fr_.9fr]">
-        <Card>
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold">Room utilization</p>
-              <p className="muted mt-1 text-xs">Occupancy across mapped storage areas</p>
-            </div>
-            <Link className="text-xs font-semibold text-accent" to="/rooms">
-              View all
-            </Link>
+      <section>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight">Quick actions</h2>
+            <p className="muted mt-1 text-xs">Common tasks, one click away.</p>
           </div>
-          <div className="space-y-4">
-            {rooms.map((room) => (
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {quickActions.map((item) => {
+            const Icon = item.icon;
+            return (
               <Link
-                key={room.id}
-                to={`/rooms/${room.id}`}
-                className="block rounded-xl border border-base p-4 transition hover:bg-[var(--rr-surface-2)]"
+                key={item.label}
+                to={item.to}
+                className="quick-action focus-ring group flex min-h-[106px] items-center gap-3 rounded-2xl border border-base bg-[var(--rr-surface)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--rr-accent)]"
               >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {room.code} · {room.name}
-                    </p>
-                    <p className="muted mt-1 text-xs">
-                      {room.building} · {room.floor} · {room.storageUnits.length} storage units
-                    </p>
-                  </div>
-                  <p className="text-sm font-semibold">
-                    {Math.round((room.occupancy / room.capacity) * 100)}%
-                  </p>
-                </div>
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--rr-surface-2)]">
-                  <div
-                    className="h-full rounded-full bg-[var(--rr-accent)]"
-                    style={{ width: `${(room.occupancy / room.capacity) * 100}%` }}
-                  />
-                </div>
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+                  <Icon size={21} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">{item.label}</span>
+                  <span className="muted mt-1 block text-xs leading-5">{item.detail}</span>
+                </span>
+                <ArrowRight
+                  size={16}
+                  className="muted shrink-0 transition group-hover:translate-x-0.5 group-hover:text-accent"
+                />
               </Link>
-            ))}
-          </div>
-        </Card>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-[1.08fr_.92fr]">
         <Card>
-          <div className="mb-5 flex items-center justify-between">
+          <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold">Operational activity</p>
-              <p className="muted mt-1 text-xs">Latest auditable events</p>
+              <h2 className="text-base font-semibold">Room occupancy</h2>
+              <p className="muted mt-1 text-xs">Storage usage for configured record rooms.</p>
             </div>
-            <Link className="text-xs font-semibold text-accent" to="/admin/audit">
-              Open audit
+            <Link
+              to="/rooms"
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-accent"
+            >
+              All rooms <ArrowRight size={14} />
             </Link>
           </div>
           <div className="space-y-4">
-            {dashboardEvents.map((event) => (
-              <div key={event.id} className="flex gap-3">
-                <div className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
-                  <CheckCircle size={16} />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold">{event.label}</p>
-                    <span className="text-[10px] muted">{event.date}</span>
+            {rooms.map((room) => {
+              const percentage = Math.round((room.occupancy / room.capacity) * 100);
+              return (
+                <Link
+                  key={room.id}
+                  to={'/rooms/' + room.id}
+                  className="block rounded-xl border border-base p-4 transition hover:bg-[var(--rr-surface-2)]"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold">
+                        {room.code} · {room.name}
+                      </p>
+                      <p className="muted mt-1 text-xs">
+                        {room.building} · {room.floor} · {room.storageUnits.length} storage units
+                      </p>
+                    </div>
+                    <span className="text-sm font-semibold tabular-nums">{percentage}%</span>
                   </div>
-                  <p className="muted mt-0.5 text-xs">{event.detail}</p>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--rr-surface-2)]">
+                    <div
+                      className="h-full rounded-full bg-[var(--rr-accent)]"
+                      style={{ width: percentage + '%' }}
+                    />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+          <LinkButton
+            to="/admin/locations"
+            variant="ghost"
+            className="mt-4 w-full"
+            icon={<Plus size={16} />}
+          >
+            Add or edit rooms
+          </LinkButton>
+        </Card>
+
+        <Card>
+          <div className="mb-5 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold">Recent activity</h2>
+              <p className="muted mt-1 text-xs">Latest record-room events in the demo data.</p>
+            </div>
+            <Link
+              to="/admin/audit"
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-accent"
+            >
+              Audit log <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="space-y-0">
+            {dashboardEvents.map((event, index) => (
+              <div key={event.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                <div className="relative">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+                    {index === 0 ? (
+                      <Barcode size={17} />
+                    ) : index === 1 ? (
+                      <CheckCircle size={17} />
+                    ) : index === 2 ? (
+                      <MapPin size={17} />
+                    ) : (
+                      <MagnifyingGlass size={17} />
+                    )}
+                  </span>
+                  {index < dashboardEvents.length - 1 && (
+                    <span className="absolute bottom-[-13px] left-[17px] top-10 w-px bg-[var(--rr-border)]" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <p className="text-sm font-semibold">{event.label}</p>
+                    <span className="muted text-[10px]">{event.date}</span>
+                  </div>
+                  <p className="muted mt-1 text-xs leading-5">{event.detail}</p>
                   <p className="mt-1 text-[10px] text-accent">{event.actor}</p>
                 </div>
               </div>
@@ -166,53 +223,27 @@ export function DashboardPage() {
         </Card>
       </section>
 
-      <section>
-        <SectionHeader
-          eyebrow="Knowledge surface"
-          title="Operational patterns"
-          description="A small editorial layer for training, implementation updates and record-room insights. The same module can later be driven from Firestore."
-        />
-      </section>
-      <PretextMasonry
-        items={galleryItems}
-        columnWidth={320}
-        gap={20}
-        getItemText={(item) => `${item.title} ${item.text}`}
-        getItemMeta={(item) => ({ headerText: item.title, extraHeight: 120, imageHeight: 80 })}
-        renderItem={(item) => (
-          <article className="overflow-hidden rounded-2xl border border-base bg-[var(--rr-surface)] p-5">
-            <div className="mb-4 h-20 rounded-xl bg-gradient-to-br from-[var(--rr-surface-2)] to-accent-soft">
-              <div className="h-full p-4">
-                <div className="h-1 w-16 rounded-full bg-[var(--rr-accent)]/45" />
-                <div className="mt-3 h-1 w-28 rounded-full bg-[var(--rr-accent)]/20" />
-              </div>
-            </div>
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-accent">Field note</p>
-            <h3 className="mt-2 text-lg font-semibold tracking-tight">{item.title}</h3>
-            <p className="muted mt-2 text-sm leading-6">{item.text}</p>
-            <Link
-              to="/reports"
-              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent"
-            >
-              Open related report <ArrowRight size={14} />
-            </Link>
-          </article>
-        )}
-        className="w-full"
-      />
-      <div className="rounded-2xl border border-base bg-accent-soft p-5">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <section className="flex flex-col gap-4 rounded-2xl border border-base bg-accent-soft p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--rr-surface)] text-accent">
+            <UploadSimple size={20} />
+          </span>
           <div>
-            <p className="text-sm font-semibold">Need help with a physical record?</p>
-            <p className="muted mt-1 text-sm">
-              Open the locate flow and scan or enter a file ID to get the current physical path.
+            <p className="text-sm font-semibold">Digital copies and scan batches</p>
+            <p className="muted mt-1 text-xs leading-5">
+              Open the file registry to attach a copy or review digitization work.
             </p>
           </div>
-          <LinkButton to="/search" variant="secondary" icon={<MagnifyingGlass size={17} />}>
-            Locate a file
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <LinkButton to="/files" variant="secondary">
+            Open files
+          </LinkButton>
+          <LinkButton to="/digitization" variant="ghost">
+            View batches
           </LinkButton>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
