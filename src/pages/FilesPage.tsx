@@ -13,7 +13,8 @@ import {
   X,
 } from '@phosphor-icons/react';
 import type { RecordFile } from '../types';
-import { files as initialFiles, rooms } from '../data/mock';
+import { files as initialFiles } from '../data/mock';
+import { loadRooms } from '../data/roomStore';
 import { PageHeader } from '../components/ui/PageHeader';
 import { LinkButton, Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -23,6 +24,7 @@ import { Modal } from '../components/ui/Modal';
 type FileDialog = 'upload' | 'move' | null;
 
 export function FilesPage() {
+  const [rooms] = useState(loadRooms);
   const [rows, setRows] = useState<RecordFile[]>(initialFiles);
   const [query, setQuery] = useState('');
   const [dialog, setDialog] = useState<FileDialog>(null);
