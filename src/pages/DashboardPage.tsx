@@ -10,12 +10,14 @@ import {
   Plus,
   UploadSimple,
 } from '@phosphor-icons/react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { LinkButton } from '../components/ui/Button';
 import { StatCard } from '../components/ui/StatCard';
 import { PageHeader } from '../components/ui/PageHeader';
-import { rooms, dashboardEvents } from '../data/mock';
+import { dashboardEvents } from '../data/mock';
+import { loadRooms } from '../data/roomStore';
 import { formatNumber } from '../lib/utils';
 
 const quickActions = [
@@ -36,6 +38,8 @@ const quickActions = [
 ];
 
 export function DashboardPage() {
+  const [rooms] = useState(loadRooms);
+
   return (
     <div className="space-y-6 lg:space-y-7">
       <PageHeader
