@@ -111,7 +111,11 @@ export function FilesPage() {
     const extension = uploadFile.name.split('.').pop()?.toLowerCase();
     const mimeType =
       uploadFile.type ||
-      (extension === 'pdf' ? 'application/pdf' : extension === 'tif' || extension === 'tiff' ? 'image/tiff' : 'application/octet-stream');
+      (extension === 'pdf'
+        ? 'application/pdf'
+        : extension === 'tif' || extension === 'tiff'
+          ? 'image/tiff'
+          : 'application/octet-stream');
     const nextUrl = URL.createObjectURL(uploadFile);
     setMapCopies((current) => {
       const previous = current[activeFile.id];
@@ -302,7 +306,9 @@ export function FilesPage() {
                       {digitalCopies[file.id] ? (
                         <span className="inline-flex max-w-36 items-center gap-1 text-xs font-medium text-[var(--rr-success)]">
                           <FileText size={15} />
-                          <span className="truncate" title={digitalCopies[file.id]}>{digitalCopies[file.id]}</span>
+                          <span className="truncate" title={digitalCopies[file.id]}>
+                            {digitalCopies[file.id]}
+                          </span>
                         </span>
                       ) : (
                         <span className="muted block text-xs">No digital copy</span>
@@ -579,8 +585,16 @@ export function FilesPage() {
               </a>
             )}
             <div className="flex flex-col-reverse gap-2 border-t border-base pt-4 sm:flex-row sm:justify-end">
-              <Button type="button" variant="ghost" onClick={() => setDialog(null)}>Close</Button>
-              <Button type="button" icon={<UploadSimple size={16} />} onClick={() => openMapUpload(activeFile.id)}>Replace map</Button>
+              <Button type="button" variant="ghost" onClick={() => setDialog(null)}>
+                Close
+              </Button>
+              <Button
+                type="button"
+                icon={<UploadSimple size={16} />}
+                onClick={() => openMapUpload(activeFile.id)}
+              >
+                Replace map
+              </Button>
             </div>
           </div>
         ) : (
@@ -593,8 +607,16 @@ export function FilesPage() {
               Map files use A0 sheet size by default. Upload the scanned map to preview it here.
             </p>
             <div className="mt-5 flex justify-center gap-2">
-              <Button type="button" variant="ghost" onClick={() => setDialog(null)}>Close</Button>
-              <Button type="button" icon={<UploadSimple size={16} />} onClick={() => activeFile && openMapUpload(activeFile.id)}>Upload map</Button>
+              <Button type="button" variant="ghost" onClick={() => setDialog(null)}>
+                Close
+              </Button>
+              <Button
+                type="button"
+                icon={<UploadSimple size={16} />}
+                onClick={() => activeFile && openMapUpload(activeFile.id)}
+              >
+                Upload map
+              </Button>
             </div>
           </div>
         )}
@@ -608,7 +630,9 @@ export function FilesPage() {
           </div>
           <div className="rounded-xl bg-accent-soft p-3">
             <p className="text-xs font-semibold text-accent">Default sheet size · A0</p>
-            <p className="muted mt-1 text-xs leading-5">Use this for scanned map sheets. The size is recorded as A0 automatically.</p>
+            <p className="muted mt-1 text-xs leading-5">
+              Use this for scanned map sheets. The size is recorded as A0 automatically.
+            </p>
           </div>
           <label className="block rounded-xl border border-dashed border-base bg-[var(--rr-bg)] p-5 text-center">
             <MapTrifold size={25} className="mx-auto text-accent" />
@@ -623,11 +647,16 @@ export function FilesPage() {
             />
           </label>
           <p className="muted text-[11px] leading-5">
-            This prototype keeps the selected map preview in the current browser session. Persistent document storage is not connected.
+            This prototype keeps the selected map preview in the current browser session. Persistent
+            document storage is not connected.
           </p>
           <div className="flex flex-col-reverse gap-2 border-t border-base pt-4 sm:flex-row sm:justify-end">
-            <Button type="button" variant="ghost" onClick={() => setDialog(null)}>Cancel</Button>
-            <Button type="submit" icon={<UploadSimple size={16} />} disabled={!uploadFile}>Attach A0 map</Button>
+            <Button type="button" variant="ghost" onClick={() => setDialog(null)}>
+              Cancel
+            </Button>
+            <Button type="submit" icon={<UploadSimple size={16} />} disabled={!uploadFile}>
+              Attach A0 map
+            </Button>
           </div>
         </form>
       </Modal>
