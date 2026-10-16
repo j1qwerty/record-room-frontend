@@ -2,7 +2,7 @@ import { Buildings, FloppyDisk, Plus, Ruler, Trash, X } from '@phosphor-icons/re
 import { useEffect, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Room, StorageUnit } from '../types';
-import { rooms as initialRooms } from '../data/mock';
+import { loadRooms, saveRooms } from '../data/roomStore';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -21,8 +21,8 @@ const makeShelves = (unitCode: string) =>
 
 export function LocationsAdminPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [managedRooms, setManagedRooms] = useState<Room[]>(initialRooms);
-  const [selectedRoomId, setSelectedRoomId] = useState(initialRooms[0]?.id ?? '');
+  const [managedRooms, setManagedRooms] = useState<Room[]>(loadRooms);
+  const [selectedRoomId, setSelectedRoomId] = useState(() => loadRooms()[0]?.id ?? '');
   const [showRoomModal, setShowRoomModal] = useState(
     () => searchParams.get('action') === 'add-room',
   );
@@ -32,6 +32,10 @@ export function LocationsAdminPage() {
   const [floor, setFloor] = useState('FL-01');
   const [capacity, setCapacity] = useState('80');
   const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    saveRooms(managedRooms);
+  }, [managedRooms]);
 
   useEffect(() => {
     if (searchParams.get('action') === 'add-room') setSearchParams({}, { replace: true });
