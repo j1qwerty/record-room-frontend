@@ -7,6 +7,7 @@ import {
   FileText,
   Funnel,
   MapPin,
+  MapTrifold,
   MagnifyingGlass,
   Plus,
   UploadSimple,
@@ -21,7 +22,14 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
 
-type FileDialog = 'upload' | 'move' | null;
+type FileDialog = 'upload' | 'move' | 'map-upload' | 'map-view' | null;
+
+type MapCopy = {
+  name: string;
+  url: string;
+  mimeType: string;
+  paperSize: 'A0';
+};
 
 export function FilesPage() {
   const [rooms] = useState(loadRooms);
@@ -31,6 +39,7 @@ export function FilesPage() {
   const [activeFileId, setActiveFileId] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [digitalCopies, setDigitalCopies] = useState<Record<string, string>>({});
+  const [mapCopies, setMapCopies] = useState<Record<string, MapCopy>>({});
   const [targetRoomId, setTargetRoomId] = useState(rooms[0]?.id ?? '');
   const [targetUnitId, setTargetUnitId] = useState(rooms[0]?.storageUnits[0]?.id ?? '');
   const [targetShelfId, setTargetShelfId] = useState(
@@ -50,6 +59,7 @@ export function FilesPage() {
   }, [query, rows]);
 
   const activeFile = rows.find((file) => file.id === activeFileId);
+  const activeMap = activeFile ? mapCopies[activeFile.id] : undefined;
   const targetRoom = rooms.find((room) => room.id === targetRoomId) ?? rooms[0];
   const targetUnit =
     targetRoom?.storageUnits.find((unit) => unit.id === targetUnitId) ??
@@ -61,6 +71,17 @@ export function FilesPage() {
     setActiveFileId(fileId);
     setUploadFile(null);
     setDialog('upload');
+  };
+
+  const openMapView = (fileId: string) => {
+    setActiveFileId(fileId);
+    setDialog('map-view');
+  };
+
+  const openMapUpload = (fileId: string) => {
+    setActiveFileId(fileId);
+    setUploadFile(null);
+    setDialog('map-upload');
   };
 
   const openMove = (fileId: string) => {
@@ -80,6 +101,32 @@ export function FilesPage() {
     setNotice(
       'Selected digital copy attached to ' + activeFile.fileNumber + ' for this demo session.',
     );
+    setDialog(null);
+    setUploadFile(null);
+  };
+
+  const saveMapUpload = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!activeFile || !uploadFile) return;
+    const extension = uploadFile.name.split('.').pop()?.toLowerCase();
+    const mimeType =
+      uploadFile.type ||
+      (extension === 'pdf' ? 'application/pdf' : extension === 'tif' || extension === 'tiff' ? 'image/tiff' : 'application/octet-stream');
+    const nextUrl = URL.createObjectURL(uploadFile);
+    setMapCopies((current) => {
+      const previous = current[activeFile.id];
+      if (previous?.url) URL.revokeObjectURL(previous.url);
+      return {
+        ...current,
+        [activeFile.id]: {
+          name: uploadFile.name,
+          url: nextUrl,
+          mimeType,
+          paperSize: 'A0',
+        },
+      };
+    });
+    setNotice('A0 map sheet attached to ' + activeFile.fileNumber + ' for this demo session.');
     setDialog(null);
     setUploadFile(null);
   };
@@ -251,17 +298,29 @@ export function FilesPage() {
                   <td className="px-3 py-4 text-xs">{file.department}</td>
                   <td className="px-3 py-4 text-xs tabular-nums">{file.year}</td>
                   <td className="px-3 py-4">
-                    <Badge
-                      tone={
-                        file.status === 'Available'
-                          ? 'success'
-                          : file.status === 'Issued'
-                            ? 'warning'
-                            : 'info'
-                      }
-                    >
-                      {file.status}
-                    </Badge>
+                    <div className="space-y-2">
+                      {digitalCopies[file.id] ? (
+                        <span className="inline-flex max-w-36 items-center gap-1 text-xs font-medium text-[var(--rr-success)]">
+                          <FileText size={15} />
+                          <span className="truncate" title={digitalCopies[file.id]}>{digitalCopies[file.id]}</span>
+                        </span>
+                      ) : (
+                        <span className="muted block text-xs">No digital copy</span>
+                      )}
+                      {mapCopies[file.id] ? (
+                        <button
+                          type="button"
+                          onClick={() => openMapView(file.id)}
+                          className="focus-ring inline-flex max-w-40 items-center gap-1 rounded-md bg-accent-soft px-2 py-1 text-left text-[11px] font-semibold text-accent"
+                          title={mapCopies[file.id].name}
+                        >
+                          <MapTrifold size={14} />
+                          <span className="truncate">Map · A0</span>
+                        </button>
+                      ) : (
+                        <span className="muted block text-[11px]">No map sheet</span>
+                      )}
+                    </div>
                   </td>
                   <td className="max-w-[225px] px-3 py-4 text-xs leading-5">{file.location}</td>
                   <td className="px-3 py-4">
@@ -302,13 +361,29 @@ export function FilesPage() {
                       >
                         Move
                       </Button>
+                      <Button
+                        variant="ghost"
+                        icon={<MapTrifold size={15} />}
+                        className="min-h-8 px-2 text-xs"
+                        onClick={() => openMapView(file.id)}
+                      >
+                        View map
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        icon={<UploadSimple size={15} />}
+                        className="min-h-8 px-2 text-xs"
+                        onClick={() => openMapUpload(file.id)}
+                      >
+                        Upload map
+                      </Button>
                       <LinkButton
                         to={'/rooms/' + file.roomId}
                         variant="ghost"
                         icon={<MapPin size={15} />}
                         className="min-h-8 px-2 text-xs"
                       >
-                        Map
+                        Location
                       </LinkButton>
                     </div>
                   </td>
@@ -374,7 +449,7 @@ export function FilesPage() {
                   className="w-full px-2 text-xs"
                   onClick={() => openUpload(file.id)}
                 >
-                  Upload copy
+                  Upload file
                 </Button>
                 <Button
                   variant="ghost"
@@ -384,13 +459,29 @@ export function FilesPage() {
                 >
                   Move file
                 </Button>
+                <Button
+                  variant="ghost"
+                  icon={<MapTrifold size={15} />}
+                  className="w-full px-2 text-xs"
+                  onClick={() => openMapView(file.id)}
+                >
+                  View map
+                </Button>
+                <Button
+                  variant="ghost"
+                  icon={<UploadSimple size={15} />}
+                  className="w-full px-2 text-xs"
+                  onClick={() => openMapUpload(file.id)}
+                >
+                  Upload map
+                </Button>
                 <LinkButton
                   to={'/rooms/' + file.roomId}
                   variant="ghost"
                   icon={<MapPin size={15} />}
                   className="w-full px-2 text-xs"
                 >
-                  View map
+                  View location
                 </LinkButton>
               </div>
             </article>
@@ -448,6 +539,95 @@ export function FilesPage() {
             <Button type="submit" icon={<UploadSimple size={16} />} disabled={!uploadFile}>
               Attach copy
             </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        open={dialog === 'map-view'}
+        onClose={() => setDialog(null)}
+        title={activeMap ? 'Map sheet · A0' : 'No map uploaded'}
+      >
+        {activeFile && activeMap ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold">{activeFile.fileNumber}</p>
+                <p className="muted mt-1 truncate text-xs">{activeMap.name}</p>
+              </div>
+              <Badge tone="info">{activeMap.paperSize}</Badge>
+            </div>
+            {activeMap.mimeType.startsWith('image/') ? (
+              <img
+                src={activeMap.url}
+                alt={'A0 map sheet for ' + activeFile.fileNumber}
+                className="max-h-[60dvh] w-full rounded-xl border border-base bg-[var(--rr-bg)] object-contain"
+              />
+            ) : activeMap.mimeType === 'application/pdf' ? (
+              <iframe
+                title={'Map sheet for ' + activeFile.fileNumber}
+                src={activeMap.url}
+                className="h-[60dvh] w-full rounded-xl border border-base bg-[var(--rr-bg)]"
+              />
+            ) : (
+              <a
+                href={activeMap.url}
+                download={activeMap.name}
+                className="focus-ring inline-flex rounded-lg bg-accent-soft px-3 py-2 text-sm font-semibold text-accent"
+              >
+                Download {activeMap.name}
+              </a>
+            )}
+            <div className="flex flex-col-reverse gap-2 border-t border-base pt-4 sm:flex-row sm:justify-end">
+              <Button type="button" variant="ghost" onClick={() => setDialog(null)}>Close</Button>
+              <Button type="button" icon={<UploadSimple size={16} />} onClick={() => openMapUpload(activeFile.id)}>Replace map</Button>
+            </div>
+          </div>
+        ) : (
+          <div className="py-3 text-center">
+            <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-accent-soft text-accent">
+              <MapTrifold size={24} />
+            </span>
+            <h3 className="mt-4 text-sm font-semibold">No map sheet attached</h3>
+            <p className="muted mx-auto mt-2 max-w-sm text-xs leading-5">
+              Map files use A0 sheet size by default. Upload the scanned map to preview it here.
+            </p>
+            <div className="mt-5 flex justify-center gap-2">
+              <Button type="button" variant="ghost" onClick={() => setDialog(null)}>Close</Button>
+              <Button type="button" icon={<UploadSimple size={16} />} onClick={() => activeFile && openMapUpload(activeFile.id)}>Upload map</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      <Modal open={dialog === 'map-upload'} onClose={() => setDialog(null)} title="Upload map · A0">
+        <form onSubmit={saveMapUpload} className="space-y-4">
+          <div>
+            <p className="text-sm font-semibold">{activeFile?.fileNumber ?? 'Selected file'}</p>
+            <p className="muted mt-1 text-xs">{activeFile?.subject}</p>
+          </div>
+          <div className="rounded-xl bg-accent-soft p-3">
+            <p className="text-xs font-semibold text-accent">Default sheet size · A0</p>
+            <p className="muted mt-1 text-xs leading-5">Use this for scanned map sheets. The size is recorded as A0 automatically.</p>
+          </div>
+          <label className="block rounded-xl border border-dashed border-base bg-[var(--rr-bg)] p-5 text-center">
+            <MapTrifold size={25} className="mx-auto text-accent" />
+            <span className="mt-2 block text-sm font-semibold">Choose map sheet</span>
+            <span className="muted mt-1 block text-xs">PDF, TIFF or scanned image</span>
+            <input
+              type="file"
+              required
+              accept=".pdf,.tif,.tiff,.png,.jpg,.jpeg"
+              onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
+              className="mt-4 block w-full text-xs"
+            />
+          </label>
+          <p className="muted text-[11px] leading-5">
+            This prototype keeps the selected map preview in the current browser session. Persistent document storage is not connected.
+          </p>
+          <div className="flex flex-col-reverse gap-2 border-t border-base pt-4 sm:flex-row sm:justify-end">
+            <Button type="button" variant="ghost" onClick={() => setDialog(null)}>Cancel</Button>
+            <Button type="submit" icon={<UploadSimple size={16} />} disabled={!uploadFile}>Attach A0 map</Button>
           </div>
         </form>
       </Modal>
