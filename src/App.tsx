@@ -1,5 +1,6 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell } from './layouts/AppShell';
+import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SearchPage } from './pages/SearchPage';
 import { RoomsPage } from './pages/RoomsPage';
@@ -21,32 +22,40 @@ import { MediaPage } from './pages/MediaPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { SupportPage } from './pages/SupportPage';
 
+function RequireLogin() {
+  return localStorage.getItem('rr-role') ? <Outlet /> : <Navigate to="/login" replace />;
+}
+
 export function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AppShell />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/rooms" element={<RoomsPage />} />
-          <Route path="/rooms/:roomId" element={<RoomDetailPage />} />
-          <Route path="/files" element={<FilesPage />} />
-          <Route path="/files/new" element={<NewFilePage />} />
-          <Route path="/files/:fileId" element={<FileDetailPage />} />
-          <Route path="/issue" element={<IssuePage />} />
-          <Route path="/return" element={<ReturnPage />} />
-          <Route path="/movement" element={<MovementPage />} />
-          <Route path="/barcodes" element={<BarcodesPage />} />
-          <Route path="/digitization" element={<DigitizationPage />} />
-          <Route path="/digitization/:batchId" element={<DigitizationBatchPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/locations" element={<LocationsAdminPage />} />
-          <Route path="/admin/audit" element={<AuditPage />} />
-          <Route path="/admin/media" element={<MediaPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/support" element={<SupportPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<RequireLogin />}>
+          <Route element={<AppShell />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/rooms" element={<RoomsPage />} />
+            <Route path="/rooms/:roomId" element={<RoomDetailPage />} />
+            <Route path="/files" element={<FilesPage />} />
+            <Route path="/files/new" element={<NewFilePage />} />
+            <Route path="/files/:fileId" element={<FileDetailPage />} />
+            <Route path="/issue" element={<IssuePage />} />
+            <Route path="/return" element={<ReturnPage />} />
+            <Route path="/movement" element={<MovementPage />} />
+            <Route path="/barcodes" element={<BarcodesPage />} />
+            <Route path="/digitization" element={<DigitizationPage />} />
+            <Route path="/digitization/:batchId" element={<DigitizationBatchPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/admin/users" element={<UsersPage />} />
+            <Route path="/admin/locations" element={<LocationsAdminPage />} />
+            <Route path="/admin/audit" element={<AuditPage />} />
+            <Route path="/admin/media" element={<MediaPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/support" element={<SupportPage />} />
+          </Route>
         </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
