@@ -1,6 +1,6 @@
 import { ArrowLeft, CheckCircle, Cube, MagnifyingGlass } from '@phosphor-icons/react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { rooms } from '../data/mock';
+import { loadRooms } from '../data/roomStore';
 import { RoomMap } from '../components/RoomMap';
 import { ShelfView } from '../components/ShelfView';
 import { Card } from '../components/ui/Card';
@@ -10,6 +10,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { useState } from 'react';
 
 export function RoomDetailPage() {
+  const [rooms] = useState(loadRooms);
   const { roomId } = useParams();
   const navigate = useNavigate();
   const room = rooms.find((item) => item.id === roomId) ?? rooms[0];
